@@ -1,0 +1,29 @@
+[
+  {
+    "model": "sensors.sensordata",
+    "pk": 1,
+    "fields": {
+      "device": 1,
+      "timestamp": "2024-06-14T10:00:00Z",
+      "value": 23.5
+    }
+  },
+  {
+    "model": "sensors.sensordata",
+    "pk": 2,
+    "fields": {
+      "device": 1,
+      "timestamp": "2024-06-14T11:00:00Z",
+      "value": 24.1
+    }
+  },
+  {
+    "model": "sensors.sensordata",
+    "pk": 3,
+    "fields": {
+      "device": 2,
+      "timestamp": "2024-06-14T10:00:00Z",
+      "value": 40.2
+    }
+  }
+]

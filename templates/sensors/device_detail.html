@@ -1,0 +1,46 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ device.name }}</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        #map { height: 300px; }
+    </style>
+</head>
+<body>
+<h1>{{ device.name }}</h1>
+<p>MAC Address: {{ device.mac_address }}</p>
+<p>Device Number: {{ device.device_number }}</p>
+<p>Description: {{ device.description }}</p>
+<p>Status: {{ device.is_connected|yesno:"Connected,Disconnected" }}</p>
+<p><a href="/toggle/{{ device.id }}/">Toggle Connection</a></p>
+<div id="map"></div>
+<canvas id="chart" width="400" height="200"></canvas>
+<script>
+var map = L.map('map').setView([{{ device.latitude }}, {{ device.longitude }}], 13);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap contributors'
+}).addTo(map);
+L.marker([{{ device.latitude }}, {{ device.longitude }}]).addTo(map)
+    .bindPopup('{{ device.name }}').openPopup();
+fetch('/api/device/{{ device.id }}/data/')
+  .then(resp => resp.json())
+  .then(data => {
+    var ctx = document.getElementById('chart').getContext('2d');
+    var labels = data.map(d => d.timestamp);
+    var values = data.map(d => d.value);
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{label: 'Value', data: values}]
+      }
+    });
+  });
+</script>
+<p><a href="/">Back to map</a></p>
+</body>
+</html>
