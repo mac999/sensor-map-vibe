@@ -4,7 +4,7 @@ This project demonstrates vibe coding to make the basic sensor mapping applicati
 
 ## Prompt
 Design the UX sketches below to create the UI (User Interface) and give them to LLM.
-<img src="https://github.com/mac999/sensor-map-vibe/blob/main/UX1.png?raw=true" height="500" />
+<img src="https://github.com/mac999/sensor-map-vibe/blob/main/UX1.png?raw=true" height="300" />
 
 - OpenAI codex: Make project and files which have title called "sensor map vibe" using python, django, leaflet map, support to visualize sensor device PoI list on map, visualize sensor data chart when user click the PoI, connect and disconnect sensor device which has (device name, MAC address, position, device number, description, dataset fields) with example data.   
 - Github Copilot for map.html: Redesign and update this map.html consdering this pasted image. Use bootstrap library and style to make this UI and UX. Add resize handler to show the entire the map, charts components which are depending on browser screen size automatically, naturally. Font height = 11pt. Make PoI from Device and SensorData in models.py. Make these charts using bootstrap chart from Device and SensorData in models.py.
