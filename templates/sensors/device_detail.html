@@ -1,46 +1,272 @@
-{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>{{ device.name }}</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        #map { height: 300px; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 11pt; /* Set base font size */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .navbar {
+            flex-shrink: 0;
+        }
+        .main-content {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        .map-container-wrapper, .charts-container-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 300px; /* Minimum height for map/chart areas */
+        }
+        #map {
+            width: 100%;
+            flex-grow: 1; /* Allow map to fill available vertical space */
+            border-radius: 0.375rem; /* Bootstrap's default border-radius */
+            border: 1px solid #dee2e6; /* Bootstrap's default border color */
+        }
+        .chart-container {
+            width: 100%;
+            flex-grow: 1; /* Allow chart to fill available vertical space */
+            min-height: 250px; /* Minimum height for individual charts */
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            margin-bottom: 1rem; /* Space between charts if stacked vertically */
+        }
+        /* Ensure charts are responsive within their containers */
+        .chart-container canvas {
+            max-width: 100%;
+            max-height: 100%;
+        }
+        /* Custom styling for PoI popups */
+        .leaflet-popup-content-wrapper {
+            border-radius: 0.375rem;
+        }
+        .leaflet-popup-content {
+            font-size: 10pt;
+        }
     </style>
 </head>
 <body>
-<h1>{{ device.name }}</h1>
-<p>MAC Address: {{ device.mac_address }}</p>
-<p>Device Number: {{ device.device_number }}</p>
-<p>Description: {{ device.description }}</p>
-<p>Status: {{ device.is_connected|yesno:"Connected,Disconnected" }}</p>
-<p><a href="/toggle/{{ device.id }}/">Toggle Connection</a></p>
-<div id="map"></div>
-<canvas id="chart" width="400" height="200"></canvas>
-<script>
-var map = L.map('map').setView([{{ device.latitude }}, {{ device.longitude }}], 13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-}).addTo(map);
-L.marker([{{ device.latitude }}, {{ device.longitude }}]).addTo(map)
-    .bindPopup('{{ device.name }}').openPopup();
-fetch('/api/device/{{ device.id }}/data/')
-  .then(resp => resp.json())
-  .then(data => {
-    var ctx = document.getElementById('chart').getContext('2d');
-    var labels = data.map(d => d.timestamp);
-    var values = data.map(d => d.value);
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{label: 'Value', data: values}]
-      }
-    });
-  });
-</script>
-<p><a href="/">Back to map</a></p>
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Sensor Dashboard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Devices</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Analytics</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid main-content">
+        <div class="row h-100">
+            <!-- Map Column -->
+            <div class="col-lg-7 d-flex flex-column map-container-wrapper mb-3 mb-lg-0">
+                <h4>Device Locations (PoIs)</h4>
+                <div id="map"></div>
+            </div>
+
+            <!-- Charts Column -->
+            <div class="col-lg-5 d-flex flex-column charts-container-wrapper">
+                <h4>Sensor Data Charts</h4>
+                <div class="chart-container">
+                    <canvas id="deviceStatusChart"></canvas>
+                </div>
+                <div class="chart-container">
+                    <canvas id="temperatureTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS Bundle (Popper.js included) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+
+    <script>
+        // --- Mock Data (Simulating data from models.py) ---
+        // Simulating Device model: { id, name, latitude, longitude, status }
+        const mockDevices = [
+            { id: 1, name: "Sensor Alpha", latitude: 51.505, longitude: -0.09, status: "active" },
+            { id: 2, name: "Sensor Beta", latitude: 51.51, longitude: -0.1, status: "inactive" },
+            { id: 3, name: "Sensor Gamma", latitude: 51.515, longitude: -0.08, status: "active" },
+            { id: 4, name: "Sensor Delta", latitude: 34.0522, longitude: -118.2437, status: "error" }, // Los Angeles
+            { id: 5, name: "Sensor Epsilon", latitude: 40.7128, longitude: -74.0060, status: "active" }  // New York
+        ];
+
+        // Simulating SensorData model: { device_id, timestamp, temperature, humidity }
+        const mockSensorData = [
+            { device_id: 1, timestamp: "2025-06-15T10:00:00Z", temperature: 22.5, humidity: 55 },
+            { device_id: 1, timestamp: "2025-06-15T10:05:00Z", temperature: 22.7, humidity: 54 },
+            { device_id: 1, timestamp: "2025-06-15T10:10:00Z", temperature: 22.6, humidity: 55 },
+            { device_id: 2, timestamp: "2025-06-15T10:00:00Z", temperature: 19.0, humidity: 60 },
+            { device_id: 3, timestamp: "2025-06-15T10:00:00Z", temperature: 25.1, humidity: 40 },
+            { device_id: 4, timestamp: "2025-06-15T10:00:00Z", temperature: 28.0, humidity: 30 },
+            { device_id: 5, timestamp: "2025-06-15T10:00:00Z", temperature: 21.0, humidity: 65 },
+            { device_id: 5, timestamp: "2025-06-15T10:05:00Z", temperature: 21.2, humidity: 63 },
+        ];
+
+        // --- Global Variables for Map and Charts ---
+        let map;
+        let deviceStatusChart;
+        let temperatureTrendChart;
+
+        // --- Map Initialization ---
+        function initMap() {
+            map = L.map('map').setView([30, 0], 2); // Centered broadly, zoom level 2
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Add PoIs (Points of Interest) from Device data
+            mockDevices.forEach(device => {
+                const marker = L.marker([device.latitude, device.longitude]).addTo(map);
+                // Find latest sensor data for this device (simplified)
+                const latestData = mockSensorData.filter(sd => sd.device_id === device.id)
+                                              .sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
+                
+                let popupContent = `<b>${device.name}</b><br>Status: ${device.status}`;
+                if (latestData) {
+                    popupContent += `<br>Temp: ${latestData.temperature}°C<br>Humidity: ${latestData.humidity}%`;
+                }
+                marker.bindPopup(popupContent);
+            });
+        }
+
+        // --- Chart Initialization ---
+        function initCharts() {
+            // 1. Device Status Chart (Pie Chart)
+            const deviceStatusCtx = document.getElementById('deviceStatusChart').getContext('2d');
+            const statusCounts = mockDevices.reduce((acc, device) => {
+                acc[device.status] = (acc[device.status] || 0) + 1;
+                return acc;
+            }, {});
+
+            deviceStatusChart = new Chart(deviceStatusCtx, {
+                type: 'pie',
+                data: {
+                    labels: Object.keys(statusCounts),
+                    datasets: [{
+                        label: 'Device Status',
+                        data: Object.values(statusCounts),
+                        backgroundColor: [
+                            'rgba(75, 192, 192, 0.7)', // active
+                            'rgba(255, 99, 132, 0.7)', // inactive
+                            'rgba(255, 206, 86, 0.7)', // error
+                            'rgba(153, 102, 255, 0.7)' // other statuses
+                        ],
+                        borderColor: [
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(255, 206, 86, 1)',
+                            'rgba(153, 102, 255, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Device Status Overview'
+                        }
+                    }
+                }
+            });
+
+            // 2. Temperature Trend Chart (Line Chart for a specific device - e.g., Device 1)
+            const temperatureTrendCtx = document.getElementById('temperatureTrendChart').getContext('2d');
+            const device1Data = mockSensorData.filter(data => data.device_id === 1)
+                                            .sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+            temperatureTrendChart = new Chart(temperatureTrendCtx, {
+                type: 'line',
+                data: {
+                    labels: device1Data.map(data => new Date(data.timestamp).toLocaleTimeString()),
+                    datasets: [{
+                        label: 'Temperature (°C) - Sensor Alpha',
+                        data: device1Data.map(data => data.temperature),
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false // Adjust as needed
+                        }
+                    },
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Temperature Trend (Sensor Alpha)'
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Resize Handler ---
+        function handleResize() {
+            if (map) {
+                map.invalidateSize();
+            }
+            // Chart.js v3+ handles responsiveness well with maintainAspectRatio: false
+            // and its container resizing. Explicit resize calls might not be needed
+            // if containers are managed by Bootstrap's grid and flexbox.
+            // However, if you face issues, you can call:
+            // if (deviceStatusChart) deviceStatusChart.resize();
+            // if (temperatureTrendChart) temperatureTrendChart.resize();
+        }
+
+        // --- Initialize ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initMap();
+            initCharts();
+            
+            // Initial call to set sizes correctly
+            handleResize(); 
+        });
+
+        // Attach resize handler to window resize event
+        window.addEventListener('resize', handleResize);
+
+    </script>
 </body>
 </html>

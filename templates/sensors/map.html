@@ -1,28 +1,331 @@
-{% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Sensor Map Vibe</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Map Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        #map { height: 500px; }
+        body, html {
+            height: 100vh; /* Use viewport height for full screen */
+            margin: 0;
+            font-size: 11pt; /* Global font size */
+            display: flex; 
+            flex-direction: column; 
+        }
+        .top-bar {
+            background-color: #f8f9fa;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid #dee2e6;
+            flex-shrink: 0; 
+        }
+        .main-container-wrapper {
+            display: flex; 
+            flex-grow: 1; 
+            overflow: hidden; 
+        }
+        .sidebar {
+            background-color: #e9ecef;
+            padding-top: 1rem;
+            width: 250px; 
+            flex-shrink: 0; 
+            overflow-y: auto; 
+        }
+        .sidebar .nav-link {
+            color: #333;
+            padding: 0.75rem 1rem;
+        }
+        .sidebar .nav-link:hover {
+            background-color: #dee2e6;
+        }
+        .content-area {
+            padding: 1rem;
+            flex-grow: 1; 
+            overflow-y: auto; 
+            display: flex;
+            flex-direction: column; 
+        }
+        .map-panel-container {
+            height: 55%; 
+            min-height: 300px; 
+            margin-bottom: 1rem;
+            display: flex; /* Critical for #map to fill this */
+        }
+        #map {
+            width: 100%;
+            height: 100%;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+        }
+        .charts-outer-panel {
+            height: 45%; 
+            min-height: 250px; 
+            display: flex;
+            flex-direction: column; 
+        }
+        .charts-panel-header {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            text-align: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+        .charts-inner-container {
+            display: flex; 
+            flex-grow: 1; 
+            gap: 1rem;
+        }
+        .chart-container {
+            flex: 1; 
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            border-radius: .25rem;
+            padding: 0.75rem;
+            display: flex;
+            flex-direction: column; 
+            text-align: center;
+            overflow: hidden; /* Prevent canvas from overflowing during resize */
+        }
+        .chart-container h6 {
+             flex-shrink: 0; 
+             margin-bottom: 0.5rem;
+        }
+        .chart-canvas-container { /* Wrapper for canvas to help with flex sizing */
+            flex-grow: 1;
+            position: relative; /* Required by Chart.js for responsive canvas */
+        }
+        .chart-container canvas {
+            /* Sized by Chart.js to fit .chart-canvas-container */
+        }
     </style>
 </head>
 <body>
-<h1>Sensor Map Vibe</h1>
-<div id="map"></div>
-<script>
-var map = L.map('map').setView([0,0], 2);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '© OpenStreetMap contributors'
-}).addTo(map);
-var devices = {{ devices|json_script:"devices-data" }};
-devices.forEach(function(d){
-    var marker = L.marker([d.latitude, d.longitude]).addTo(map);
-    marker.bindPopup('<a href="/device/'+d.id+'/">'+d.name+'</a>');
-});
-</script>
+
+    <nav class="navbar navbar-light bg-light top-bar">
+        <div class="container-fluid">
+            <form class="d-flex">
+                <input class="form-control me-2 form-control-sm" type="search" placeholder="Sensor PoI query in map" aria-label="Search">
+                <button class="btn btn-outline-success btn-sm" type="submit">Search</button>
+            </form>
+            <div>
+                <button class="btn btn-primary btn-sm me-2" type="button">Login</button>
+                <button class="btn btn-secondary btn-sm" type="button">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="main-container-wrapper">
+        <nav id="sidebarMenu" class="sidebar">
+            <div class="position-sticky pt-3">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="#">
+                            Connect Sensor
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            Disconnect Sensor
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="detailSensorListLink"> 
+                            Detail Sensor List
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+
+        <main class="content-area">
+            <div class="map-panel-container">
+                <div id="map">
+                    <!-- MAP panel for sensor device PoI list visualization -->
+                </div>
+            </div>
+
+            <div class="charts-outer-panel">
+                <h5 class="charts-panel-header">Sensor Dataset Charts Panels</h5>
+                <div class="charts-inner-container">
+                    <div class="chart-container">
+                        <h6>History Bar Chart</h6>
+                        <div class="chart-canvas-container">
+                            <canvas id="historyBarChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <h6>Pie Chart</h6>
+                        <div class="chart-canvas-container">
+                            <canvas id="pieChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <h6>Scalar Dataset Chart</h6>
+                        <div class="chart-canvas-container">
+                            <canvas id="scalarDatasetChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Bootstrap JS Bundle (Popper.js included) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Chart.js JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+
+    <script>
+        // Debounce function to limit how often a function is called during rapid events
+        function debounce(func, wait, immediate) {
+            var timeout;
+            return function() {
+                var context = this, args = arguments;
+                var later = function() {
+                    timeout = null;
+                    if (!immediate) func.apply(context, args);
+                };
+                var callNow = immediate && !timeout;
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+                if (callNow) func.apply(context, args);
+            };
+        };
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- Map Initialization ---
+            var map; 
+            var mapContainer = document.getElementById('map');
+            if (mapContainer) {
+                map = L.map('map').setView([20, 0], 2); 
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                }).addTo(map);
+            } else {
+                console.error("Map container 'map' not found.");
+            }
+
+            // --- Function to add PoI to map (Placeholder) ---
+            function addPoisToMap(devices) {
+                if (!map || !devices) return;
+                // Clear existing markers (optional, depends on use case)
+                // map.eachLayer(function (layer) {
+                //    if (layer instanceof L.Marker) {
+                //        map.removeLayer(layer);
+                //    }
+                // });
+                devices.forEach(device => {
+                    // Assuming device object from models.py Device model has:
+                    // device.latitude, device.longitude, device.name, device.status
+                    if (device.latitude != null && device.longitude != null) {
+                        L.marker([device.latitude, device.longitude])
+                            .addTo(map)
+                            .bindPopup(`<b>Device: ${device.name || 'N/A'}</b><br>Status: ${device.status || 'N/A'}`);
+                    }
+                });
+            }
+
+            // --- Fetch Device Data and Add PoIs (Placeholder Example) ---
+            function fetchAndDisplayDevicePois() {
+                // Example: fetch('/api/devices') // Your API endpoint for Device data
+                //     .then(response => response.json())
+                //     .then(devicesData => {
+                //         addPoisToMap(devicesData); // Assumes devicesData is an array of device objects
+                //     })
+                //     .catch(error => console.error('Error fetching device PoIs:', error));
+
+                const dummyDevices = [
+                    { name: 'Sensor Alpha', latitude: 34.0522, longitude: -118.2437, status: 'Active' },
+                    { name: 'Sensor Beta', latitude: 40.7128, longitude: -74.0060, status: 'Inactive' },
+                    { name: 'Sensor Gamma', latitude: 48.8566, longitude: 2.3522, status: 'Active' }
+                ];
+                addPoisToMap(dummyDevices);
+            }
+            fetchAndDisplayDevicePois();
+
+            // --- Chart Initializations (Placeholders using Chart.js) ---
+            // Data for charts would come from SensorData and Device models via your backend API
+
+            // 1. History Bar Chart
+            const historyBarCtx = document.getElementById('historyBarChart')?.getContext('2d');
+            if (historyBarCtx) {
+                new Chart(historyBarCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May'], 
+                        datasets: [{
+                            label: 'Sensor Events', 
+                            data: [65, 59, 80, 81, 56], 
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            borderColor: 'rgba(54, 162, 235, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                });
+            }
+
+            // 2. Pie Chart
+            const pieCtx = document.getElementById('pieChart')?.getContext('2d');
+            if (pieCtx) {
+                new Chart(pieCtx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Active Devices', 'Inactive Devices', 'Error State'], 
+                        datasets: [{
+                            data: [30, 15, 5], 
+                            backgroundColor: ['rgba(75, 192, 192, 0.7)', 'rgba(255, 159, 64, 0.7)', 'rgba(255, 99, 132, 0.7)'],
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
+            }
+
+            // 3. Scalar Dataset Chart (e.g., Line Chart for time-series SensorData)
+            const scalarCtx = document.getElementById('scalarDatasetChart')?.getContext('2d');
+            if (scalarCtx) {
+                new Chart(scalarCtx, {
+                    type: 'line',
+                    data: {
+                        labels: ['00:00', '01:00', '02:00', '03:00', '04:00', '05:00'], 
+                        datasets: [{
+                            label: 'Vibration Level (mm/s)', 
+                            data: [0.2, 0.3, 0.1, 0.5, 0.4, 0.6], 
+                            borderColor: 'rgba(153, 102, 255, 1)',
+                            backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                            fill: true,
+                            tension: 0.1
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                });
+            }
+
+            // --- Resize Handler for Leaflet Map ---
+            window.addEventListener('resize', debounce(function() {
+                if (map) {
+                    map.invalidateSize();
+                }
+                // Chart.js charts with responsive:true usually handle resize automatically
+                // by observing their container.
+            }, 250)); // Debounce for 250ms to avoid excessive calls
+
+            // --- Sidebar Navigation ---
+            const detailSensorListLink = document.getElementById('detailSensorListLink');
+            if (detailSensorListLink) {
+                detailSensorListLink.addEventListener('click', function(event) {
+                    event.preventDefault(); // Prevent default anchor behavior
+                    currentlySelectedDevicePk = 1;
+                    window.location.href = `/device/${currentlySelectedDevicePk}`;
+                });
+            }         
+        });
+    </script>
 </body>
 </html>
