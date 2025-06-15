@@ -27,6 +27,15 @@ It generated the project files including UX like below.
 Therefore, you should not believe what some people say that anyone can Vibe Coding without knowing anything about development or technology stack. It's not common sense.
 - If you have no experience with the software development process, your vibe coding projects will likely end up being limited to things like calculators, simple games, and developing simple HTML pages. You can develop simple apps like this without them, but if you try to do something a little more complex, you'll soon find yourself stuck in a maze of code, unable to understand and fix errors or hallucinations in the generated project with code to make it work.
 
+So, what should we prepare for vibe coding?
+- Have experience in describing user requirements well in terms of technology stack and software engineering.
+- Described user requirements in detail.
+- UX should be provided in detail by sketching.
+- Provide project templates included in the technology stack.
+- Develop experience in eliminating illusions and errors.
+- Start small. Do not try to complete all project files at once. LLM has clear token limits. You should vibe code gradually.
+- Learn the features of each vibe coding, Nocode tool, and LLM and use them smartly.
+
 # Features
 
 - List of sensor devices with name, MAC address, position, device number and description.
