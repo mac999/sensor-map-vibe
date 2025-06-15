@@ -10,7 +10,10 @@ Design the UX sketches below to create the UI (User Interface) and give them to 
 - Github Copilot for map.html: Redesign and update this map.html consdering this pasted image. Use bootstrap library and style to make this UI and UX. Add resize handler to show the entire the map, charts components which are depending on browser screen size automatically, naturally. Font height = 11pt. Make PoI from Device and SensorData in models.py. Make these charts using bootstrap chart from Device and SensorData in models.py.
 - Github Copilot for device_detail.html: Redesign and update this HTML consdering this pasted image. Use bootstrap library and style to make this UI and UX. Add resize handler to show the entire the map, charts components which are depending on browser screen size automatically, naturally. Font height = 11pt. Make PoI from Device and SensorData in models.py. Make these charts using bootstrap chart from Device and SensorData in models.py.
 
-## Features
+# Generate 
+
+
+# Features
 
 - List of sensor devices with name, MAC address, position, device number and description.
 - Interactive map with markers for each device using Leaflet.
@@ -18,7 +21,7 @@ Design the UX sketches below to create the UI (User Interface) and give them to 
 - Ability to toggle a device's connection status.
 - Example data provided via Django fixtures.
 
-## Setup
+# Setup
 
 1. Install dependencies:
    ```bash
@@ -39,5 +42,8 @@ Run tests with:
 ```bash
 python manage.py test
 ```
+# Author
+Taewook Kang, Ph.D, laputa99999@gmail.com
 
-This project serves as a simple starting point for experimenting with sensor mapping and data visualization in Django.
+# License
+MIT license
