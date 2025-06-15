@@ -34,7 +34,7 @@ So, what should we prepare for vibe coding?
 - Provide project templates included in the technology stack.
 - Develop experience in eliminating illusions and errors.
 - Start small. Do not try to complete all project files at once. LLM has clear token limits. You should vibe code gradually.
-- Learn the features of each vibe coding, Nocode tool, and LLM and use them smartly.
+- Learn the features of each vibe coding, Nocode tool, and LLM and use them smartly. Some tools may understand UX sketches but not be able to generate projects, while others may generate project files and components but not be able to connect the detailed workflows between them.
 
 # Features
 
