@@ -12,6 +12,7 @@ Design the UX sketches below to create the UI (User Interface) using Figma and g
 
 # Generated Result 
 It generated the project files including UX like below.
+
 <img src="https://github.com/mac999/sensor-map-vibe/blob/main/app.gif" height="300" />
 
 # Features
