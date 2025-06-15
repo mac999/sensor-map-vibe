@@ -5,6 +5,7 @@ This project demonstrates the vibe coding to make the basic sensor mapping appli
 ## Prompt Example for vibe coding
 You can use nocode tools such as OpenAI codex, bubble, nocodefusion, flutterflow et al to make new project files or update with redesign using Copilot, Cursor tools after loading them. If you have experience the software development process, you can understand it's important to define requirements as the viewpoint of user goals, needs, interface, workflow considering technical framework, components like server side (flask, django), client side(bootstrap, flutter etc). 
 In example, to demonstrate the vibe coding how to create wep-based application including map, dashboard, I designed the simple UX sketches below to create the UI (User Interface) using Figma and give them to LLM.
+
 <img src="https://github.com/mac999/sensor-map-vibe/blob/main/UX1.png?raw=true" height="300" />
 
 - OpenAI codex: Make project and files which have title called "sensor map vibe" using python, django, leaflet map, support to visualize sensor device PoI list on map, visualize sensor data chart when user click the PoI, connect and disconnect sensor device which has (device name, MAC address, position, device number, description, dataset fields) with example data.   
@@ -16,6 +17,8 @@ In example, to demonstrate the vibe coding how to create wep-based application i
 It generated the project files including UX like below.
 
 <img src="https://github.com/mac999/sensor-map-vibe/blob/main/app.gif" height="300" />
+
+There is no right answer to how to develop the projects that satisfy the needs of various users in Vibe Coding. When you Vibe Coding, you will find that you have to input prompts as if you are predicting the project template, folders, files, code routines that are generated variably. Therefore, you should not believe what some people say that anyone can Vibe Coding without knowing anything about development or technology stack. If you don't have this experience with software development process, your vibe coding projects can just limit calculators, simple games, and simple HTML pages.
 
 # Features
 
