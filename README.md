@@ -18,7 +18,7 @@ It generated the project files including UX like below.
 
 <img src="https://github.com/mac999/sensor-map-vibe/blob/main/app.gif" height="300" />
 
-There is no right answer to how to develop the projects that satisfy the needs of various users in Vibe Coding. When you Vibe Coding, you will find that you have to input prompts as if you are predicting the project template, folders, files, code routines that are generated variably. Therefore, you should not believe what some people say that anyone can Vibe Coding without knowing anything about development or technology stack. If you don't have this experience with software development process, your vibe coding projects can just limit calculators, simple games, and simple HTML pages.
+There is no right answer to how to develop the projects that satisfy the needs of various users in Vibe Coding. When you Vibe Coding, you will find that you have to predict the useful prompts of your LLM as if you are predicting the project template, folders, files, code routines that are generated variably. Therefore, you should not believe what some people say that anyone can Vibe Coding without knowing anything about development or technology stack. If you have no experience with the software development process, your vibe coding projects will likely end up being limited to things like calculators, simple games, and developing simple HTML pages.
 
 # Features
 
