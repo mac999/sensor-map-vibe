@@ -3,8 +3,8 @@
 This project demonstrates the vibe coding to make the basic sensor mapping application built with **Django** and **Leaflet**. It shows how to display a list of sensor devices on an interactive map and visualize sensor readings when a device is selected.
 
 ## Prompt Example for vibe coding
-You can use nocode tools such as OpenAI codex, bubble, nocodefusion, flutterflow et al to make new project files or update with redesign using Copilot, Cursor tools after loading them. If you have experience the software development process, you can understand it's important to define requirements as the viewpoint of user goals, needs, interface, workflow considering technical framework, components like server side (flask, django), client side(bootstrap, flutter etc). 
-In example, to demonstrate the vibe coding how to create wep-based application including map, dashboard, I designed the simple UX sketches below to create the UI (User Interface) using Figma and give them to LLM.
+You can use nocode tools such as OpenAI codex, bubble, nocodefusion, flutterflow et al to make new project files or update with redesign using Copilot, Cursor tools after loading them. If you have experience the software development process, you can understand it's important to define requirements as the viewpoint of user goals, needs, interface, workflow considering technical framework, components like server side (flask, django), client side(bootstrap, flutter etc). Therefore, if you use vibe coding, your prompts should be as technically and terminologically detailed as you can without confusing the spec.
+In example, to demonstrate the simple vibe coding how to create wep-based application including map, dashboard, I designed the simple UX sketches below to create the UI (User Interface) using Figma and give them to LLM.
 
 <img src="https://github.com/mac999/sensor-map-vibe/blob/main/UX1.png?raw=true" height="300" />
 
